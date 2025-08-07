@@ -1,0 +1,176 @@
+PROGETTI I ANNO - ITS 
+Regole per la consegna:  
+● Report  
+● Inviare link del GitHub Repository (pubblico) contenente codice, presentazione e report. 
+● Presentazione:  
+○ 10 minuti a persona (strict)  
+○ Demo del lavoro svolto  
+○ Durante la presentazione deve emergere il contributo di ciascun componente del 
+gruppo   
+Tutti i gruppi dovranno progettare, realizzare e gestire un sito Web con i seguenti 
+obiettivi generali 
+1. Progettazione dell'Interfaccia Utente: 
+○ Creare un'interfaccia utente che consenta agli utenti di navigare facilmente 
+attraverso i contenuti del sito. 
+○ Implementare una funzionalità di ricerca avanzata per consentire agli utenti di 
+trovare facilmente informazioni specifiche sugli argomenti trattati. 
+2. Implementazione di un Sistema di Autenticazione Sicura: 
+○ Sviluppare un sistema di autenticazione almeno a due ruoli (utenti e 
+amministratori) che consenta agli utenti di visitare le risorse online e agli 
+amministratori di accedere e modificare in modo sicuro le risorse. 
+3. Conformità Normativa: 
+○ Implementare procedure per la registrazione e la gestione sicura dei dati 
+personali degli utenti, garantendo la conformità normativa e la sicurezza dei dati. 
+○ Assicurare che il sito web sia conforme alle normative sulla privacy, come il 
+GDPR (General Data Protection Regulation). 
+***** 
+1. Prenotazione eventi - Web Vulnerability 
+(Ref. Isabella Marasco, isabella.marasco4@unibo.it) 
+Il progetto mira a elevare il livello di sicurezza dell'applicazione web attraverso un processo 
+di analisi del codice sorgente e l'implementazione di contromisure specifiche per le 
+vulnerabilità più diffuse nel contesto web. Bisogna considerare sia il punto di vista 
+dell’attaccante, comprendendo come funzionano gli attacchi sia da quello del difensore 
+applicando le tecniche di protezione.  
+L’applicazione deve consentire agli utenti di prenotare un posto a uno o più eventi disponibili. 
+Il sistema sarà composto da due pagine principali e include funzionalità basilari di 
+interazione utente-database. 
+Struttura dell’applicazione 
+● Pagina Login e Creazione account 
+● Pagina home (eventi) 
+● Pagine di prenotazione evento 
+Funzionalitá: 
+● Mostra la lista degli eventi disponibili 
+● Iscrizione ad un evento 
+Obiettivi: 
+● Analisi del codice sorgente dell'applicazione web per individuare potenziali punti 
+debolezza suscettibili agli attacchi studiati. 
+● Implementazione delle best practice di secure coding in PHP e JavaScript per 
+mitigare le vulnerabilità individuate. 
+● Esecuzione di test di base per verificare l'efficacia delle contromisure adottate e la 
+corretta funzionalità dell'applicazione. 
+2. Autenticazione e Autorizzazione Sicuro 
+(Ref. Isabella Marasco, isabella.marasco4@unibo.it) 
+Il progetto si basa nella creazione di un sistema sicuro per la gestione degli utenti di 
+un’applicazione web relativa ad un sistema di acquisto online, con gestione del carrello e 
+checkout. Data la necessità di gestire almeno due distinti livelli di accesso (utenti standard e 
+amministratori) sarà cruciale implementare meccanismi robusti per la gestione sicura delle 
+credenziali, la protezione delle sessioni utente e l'applicazione di regole di accesso basate 
+sui ruoli, in linea con i requisiti di gestione sicura dei dati e conformità normativa.  
+Struttura dell’applicazione 
+● Pagina Login e Creazione account 
+● Pagina Catalogo prodotti 
+● Carrello 
+Funzionalitá: 
+● Visualizza i prodotti aggiunti al carrello con quantità, prezzo unitario e totale 
+● Checkout per confermare gli acquisti 
+Obiettivi: 
+● Implementazione di un meccanismo di hashing delle password sicuro e aggiornato 
+(es. utilizzando le funzioni password_hash() e password_verify() di PHP) per 
+sostituire eventuali metodi obsoleti (come MD5 o SHA1) o insicuri. 
+● Gestione sicura delle sessioni utente, inclusa la configurazione appropriata dei 
+cookie di sessione (flag HttpOnly, Secure) e la prevenzione dei più comuni attacchi 
+legati alle sessioni (es. session hijacking base). 
+● Sviluppo o affinamento della logica di controllo degli accessi (Authorization), 
+definendo e applicando regole su quali utenti (o ruoli, se previsti) possono accedere 
+a specifiche pagine o eseguire determinate azioni. 
+● Implementazione di funzionalità accessorie per migliorare la sicurezza (es. log dei 
+tentativi di accesso falliti, blocco temporaneo account dopo N tentativi errati). 
+3. Security Logging e Monitoring  
+(Ref. Isabella Marasco, isabella.marasco4@unibo.it) 
+Il progetto consiste nell'implementare un sistema per registrare eventi specifici che possono 
+indicare attività malevole e creare un'interfaccia (protetta) per analizzare tali registri. Il 
+logging degli eventi è una componente essenziale di una strategia di sicurezza, poiché 
+fornisce visibilità su ciò che accade nell'applicazione e permette di identificare potenziali 
+minacce. 
+Obiettivi: 
+● Definizione degli eventi di sicurezza rilevanti da monitorare e registrare (es. tentativi 
+di login falliti, accesso a risorse protette senza autorizzazione, input con pattern 
+sospetti). 
+● Progettazione e implementazione di una struttura dati (tabella nel database MySQL) 
+per memorizzare i log di sicurezza, includendo informazioni pertinenti (timestamp, IP 
+sorgente, tipo di evento, dettagli sull'evento). 
+● Modifica del codice PHP per intercettare gli eventi definiti e registrarli in modo sicuro 
+nel database. 
+● Sviluppo di una sezione dedicata nell'applicazione (accessibile solo a utenti 
+autorizzati/amministratori) per visualizzare i log di sicurezza in formato leggibile. 
+● Considerazioni sulla sicurezza della pagina di visualizzazione dei log per prevenire 
+accessi non autorizzati. 
+4. Sistema di Gestione dei CV Online per Studenti 
+(Ref. Alfonso Esposito alfonso.esposito@itsolivetti.it) 
+Il presente progetto si propone di sviluppare un "Sistema di Gestione CV Online per 
+Studenti", una piattaforma web dinamica e sicura progettata per facilitare agli studenti la 
+creazione, l'aggiornamento e la gestione dei propri curricula vitae. Le funzionalità principali 
+includeranno un sistema di Login e Creazione Account sicuro, la possibilità di caricare il 
+proprio CV in formato PDF e di inserire dati anagrafici ed esperienze lavorative e formative. 
+Funzionalità: 
+● Login e Creazione account 
+● Upload CV (PDF), dati anagrafici, esperienze 
+● Visualizzazione/Download 
+Struttura dell’applicazione 
+● Pagina Login 
+● Home utente e visualizzazione documenti 
+● Home admin e visualizzazione utenti e  documenti 
+Obiettivi: 
+● Validazione dell'Input: valida tutti i dati provenienti dall'utente (sia lato client con 
+JavaScript, sia fondamentalmente lato server con PHP). 
+● Codifica dell'Output: quando si visualizzano i dati inseriti dagli utenti (es. nome, 
+esperienze) nell'HTML, assicurarsi di "neutralizzarli" usando funzioni come 
+“htmlspecialchars()” in php. 
+● Istruzioni Parametrizzate per MySQL: usare i prepared statements per tutte le 
+query al database. Non costruire mai query concatenando direttamente stringhe con i 
+dati forniti dall'utente. 
+5. Mini Portale per Sondaggi Online 
+(Ref. Alfonso Esposito alfonso.esposito@itsolivetti.it) 
+Il Mini Portale per Sondaggi Online è una semplice applicazione web che consente agli 
+utenti di votare a uno o più sondaggi pubblicati sulla piattaforma. L’interfaccia è minimalista e 
+user-friendly, mentre il backend utilizza PHP per gestire le richieste e MySQL per 
+memorizzare sondaggi e voti. Il sistema deve permettere agli utenti autenticati di votare una 
+sola volta per ogni sondaggio. Sebbene il sistema registri chi ha partecipato a quale 
+sondaggio (per lo storico utente e per prevenire voti multipli), i risultati presentati 
+all'amministratore e quelli generali del sondaggio devono essere aggregati in modo tale da 
+non rivelare il voto del singolo utente, garantendo l'anonimato del voto effettivo. Lo storico 
+personale dell'utente indicherà a quali sondaggi ha partecipato. 
+Funzionalità: 
+● Login e Creazione account: 
+○ Area utente: Elenco dei sondaggi disponibili per la votazione, pagina di 
+votazione per singolo sondaggio, visualizzazione dello storico dei sondaggi a 
+cui si è partecipato 
+○ Area amministratore: dashboard per la creazione e gestione dei sondaggi (es. 
+definire domande e opzioni), visualizzazione dei risultati dei sondaggi in 
+forma aggregata e anonimizzata. 
+● Permettere la votazione a sondaggi  
+● Visualizzazione risultati 
+Struttura dell’applicazione 
+● Pagina Login 
+● Home utente e visualizzazione documenti 
+● Home admin e visualizzazione utenti e  documenti 
+Obiettivi: - 
+Implementare un meccanismo di login robusto per utenti e amministratori, 
+proteggendo le credenziali (ad esempio, tramite hashing sicuro delle password). - - - 
+Garantire una gestione delle sessioni sicura. 
+Applicare un controllo degli accessi rigoroso (autorizzazione) per assicurare che gli 
+utenti possano votare solo ai sondaggi a cui sono abilitati e che gli amministratori 
+abbiano privilegi distinti per la gestione di sondaggi e utenti. 
+Gli utenti devono poter vedere solamente il proprio storico relativo ai sondaggi 
+mentre gli amministratori devono poter vedere tutte i sondaggi realizzati dagli utenti 
+ma anonimizzati. 
+6. Sistema Ticketing per Assistenza IT 
+(Ref. Alfonso Esposito alfonso.esposito@itsolivetti.it, Isabella Marasco, 
+isabella.marasco4@unibo.it ) 
+Il progetto prevede lo sviluppo di una semplice piattaforma web per la gestione di richieste 
+di assistenza informatica. Gli utenti possono inviare una richiesta (ticket) indicando il 
+problema riscontrato e visualizzare lo stato della richiesta. L’amministratore può gestire i 
+ticket, aggiornare lo stato (in attesa, in lavorazione, risolto) e aggiungere commenti interni. 
+Funzionalità: 
+● Registrazione/login con gestione sicura delle password 
+● Form per apertura ticket con titolo, descrizione e priorità 
+● Eliminazione ticket da parte dell’admin 
+● Dashboard admin con: 
+○ Elenco ticket di tutti gli utenti con info sullo stato e la priorità 
+Struttura dell’applicazione: 
+● Pagina Login / Registrazione 
+● Home utente: lista dei propri ticket + form per inviare nuova richiesta 
+● Home admin: gestione di tutti i ticket ricevuti, possibilità di aggiornare lo stato e 
+scrivere note visibili solo agli admin 
+Aspetti di Sicurezza da coprire: 
+● Password hashing sicuro (password_hash) 
