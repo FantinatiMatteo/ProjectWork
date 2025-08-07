@@ -1,5 +1,9 @@
 <?php
-session_start();
+/**
+ * IT Support Ticketing System - Main Entry Point
+ * Professional ticketing system for IT support departments
+ */
+require_once 'config.php';
 
 // Redirect to login if not authenticated
 if (!isset($_SESSION['user_id'])) {

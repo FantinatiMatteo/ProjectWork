@@ -16,6 +16,16 @@ error_reporting(E_ALL);
 // Timezone setting
 date_default_timezone_set('Europe/Rome');
 
+// Session security configuration BEFORE session_start()
+if (session_status() == PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
+    ini_set('session.use_strict_mode', 1);
+    ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.gc_maxlifetime', 3600);
+    ini_set('session.cookie_lifetime', 0);
+}
+
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -29,12 +39,6 @@ define('MAX_LOGIN_ATTEMPTS', 5);
 define('LOCKOUT_TIME', 900); // 15 minutes
 define('PASSWORD_MIN_LENGTH', 8);
 define('PASSWORD_REQUIRE_SPECIAL', true);
-
-// Session security
-ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS
-ini_set('session.use_strict_mode', 1);
-ini_set('session.cookie_samesite', 'Strict');
 
 // File upload configuration
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
@@ -135,5 +139,23 @@ function isUserLockedOut($email) {
         error_log("Failed to check lockout status: " . $e->getMessage());
         return false;
     }
+}
+
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Session timeout check
+if (isset($_SESSION['user_id'])) {
+    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > SESSION_TIMEOUT) {
+        session_unset();
+        session_destroy();
+        if (!headers_sent()) {
+            header('Location: login.php?timeout=1');
+            exit;
+        }
+    }
+    $_SESSION['last_activity'] = time();
 }
 ?>

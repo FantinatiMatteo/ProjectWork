@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Database - <?php echo 'IT Support Ticketing System'; ?></title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6366f1;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .setup-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .setup-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .setup-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .setup-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .setup-body {
+            padding: 2rem;
+        }
+        
+        .step {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .step:hover {
+            border-color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.02);
+        }
+        
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+        }
+        
+        .step-title {
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .code-block {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        
+        .btn-copy {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .credentials-box {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1));
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .credential-item {
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-card">
+            <div class="setup-header">
+                <i class="fas fa-cog fa-3x mb-3"></i>
+                <h1>Setup Database</h1>
+                <p>Configurazione Sistema Ticketing IT</p>
+            </div>
+            
+            <div class="setup-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Importante:</strong> Segui questi passaggi per configurare il database del sistema ticketing.
+                </div>
+                
+                <!-- Step 1: Database Creation -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Crea il Database</h3>
+                    </div>
+                    <p>Apri phpMyAdmin o il tuo client MySQL preferito e crea un nuovo database:</p>
+                    <div style="position: relative;">
+                        <div class="code-block">CREATE DATABASE ticketing_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;</div>
+                        <button class="btn-copy" onclick="copyToClipboard(this)">Copia</button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Import Schema -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Importa lo Schema</h3>
+                    </div>
+                    <p>Esegui il file SQL per creare tutte le tabelle. Copia e incolla questo comando in phpMyAdmin:</p>
+                    <div style="position: relative;">
+                        <div class="code-block" style="max-height: 300px; overflow-y: auto;">-- Ticketing System Database Schema
+USE ticketing_system;
+
+-- Users table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    role ENUM('user', 'admin') DEFAULT 'user' NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    email_verified BOOLEAN DEFAULT TRUE,
+    failed_login_attempts INT DEFAULT 0,
+    locked_until TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NULL,
+    last_login_ip VARCHAR(45) NULL,
+    gdpr_consent BOOLEAN DEFAULT TRUE NOT NULL,
+    gdpr_consent_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+);
+
+-- Tickets table
+CREATE TABLE tickets (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    ticket_number VARCHAR(20) UNIQUE NOT NULL,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    priority ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium' NOT NULL,
+    status ENUM('open', 'in_progress', 'waiting_user', 'resolved', 'closed') DEFAULT 'open' NOT NULL,
+    category VARCHAR(100) NULL,
+    assigned_to INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP NULL,
+    closed_at TIMESTAMP NULL,
+    admin_notes TEXT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_priority (priority)
+);
+
+-- Security logs table
+CREATE TABLE security_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    event_type VARCHAR(50) NOT NULL,
+    details TEXT,
+    user_id INT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_event_type (event_type),
+    INDEX idx_created_at (created_at)
+);
+
+-- Login attempts table
+CREATE TABLE login_attempts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    success BOOLEAN NOT NULL,
+    failure_reason VARCHAR(100) NULL,
+    user_agent TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_ip_address (ip_address)
+);
+
+-- User sessions table
+CREATE TABLE user_sessions (
+    id VARCHAR(128) PRIMARY KEY,
+    user_id INT NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    user_agent_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Ticket updates table
+CREATE TABLE ticket_updates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    ticket_id INT NOT NULL,
+    user_id INT NOT NULL,
+    update_type ENUM('comment', 'status_change', 'system_update') NOT NULL,
+    content TEXT NULL,
+    old_value VARCHAR(100) NULL,
+    new_value VARCHAR(100) NULL,
+    is_internal BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Ticket comments table
+CREATE TABLE ticket_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    is_internal BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_ticket_comments_ticket_id (ticket_id),
+    INDEX idx_ticket_comments_user_id (user_id),
+    INDEX idx_ticket_comments_created_at (created_at)
+);
+
+-- Insert default users
+INSERT INTO users (email, password_hash, first_name, last_name, role, email_verified, gdpr_consent, gdpr_consent_date) VALUES
+('admin@ticketing.local', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System', 'Administrator', 'admin', TRUE, TRUE, NOW()),
+('user@ticketing.local', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'Demo', 'User', 'user', TRUE, TRUE, NOW());
+
+-- Insert sample tickets
+INSERT INTO tickets (ticket_number, user_id, title, description, priority, status, category) VALUES
+('TK-2025-000001', 2, 'Computer non si avvia', 'Il mio computer non si accende quando premo il pulsante di accensione. Ho controllato il cavo di alimentazione ed è collegato correttamente.', 'high', 'open', 'Hardware'),
+('TK-2025-000002', 2, 'Problemi con la email', 'Non riesco a inviare o ricevere email. Ricevo un messaggio di errore sulla connessione al server.', 'medium', 'in_progress', 'Software'),
+('TK-2025-000003', 2, 'Stampante non funziona', 'La stampante dell''ufficio fa rumori strani e stampa pagine bianche.', 'low', 'resolved', 'Hardware');
+
+-- Insert sample comments
+INSERT INTO ticket_comments (ticket_id, user_id, comment, is_internal, created_at) VALUES
+(1, 1, 'Grazie per la segnalazione. Stiamo verificando il problema con l''accesso al sistema.', FALSE, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(1, 1, 'Controllo interno: verificare configurazione alimentatore.', TRUE, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(2, 2, 'Il problema persiste anche dopo aver riavviato il computer.', FALSE, DATE_SUB(NOW(), INTERVAL 1 HOUR));
+
+-- Insert security log
+INSERT INTO security_logs (event_type, details, ip_address, user_agent) VALUES
+('system_setup', 'Database setup completed', '127.0.0.1', 'Setup Script');</div>
+                        <button class="btn-copy" onclick="copyToClipboard(this)">Copia</button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Configuration -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Configurazione Database</h3>
+                    </div>
+                    <p>Modifica il file <code>config.php</code> con le tue credenziali del database:</p>
+                    <div style="position: relative;">
+                        <div class="code-block">// Modifica queste credenziali nel file config.php
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');           // Il tuo username MySQL
+define('DB_PASS', '');               // La tua password MySQL
+define('DB_NAME', 'ticketing_system');</div>
+                        <button class="btn-copy" onclick="copyToClipboard(this)">Copia</button>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Test -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <h3 class="step-title">Test del Sistema</h3>
+                    </div>
+                    <p>Dopo aver completato i passaggi precedenti, puoi accedere al sistema:</p>
+                    
+                    <div class="credentials-box">
+                        <h5><i class="fas fa-key me-2"></i>Credenziali di Accesso</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-danger">👨‍💼 Amministratore</h6>
+                                <div class="credential-item">
+                                    <strong>Email:</strong> admin@ticketing.local
+                                </div>
+                                <div class="credential-item">
+                                    <strong>Password:</strong> Admin@123!
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="text-primary">👤 Utente Demo</h6>
+                                <div class="credential-item">
+                                    <strong>Email:</strong> user@ticketing.local
+                                </div>
+                                <div class="credential-item">
+                                    <strong>Password:</strong> User@123!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Sicurezza:</strong> Cambia immediatamente queste password dopo il primo accesso!
+                    </div>
+                </div>
+                
+                <!-- Features -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">✓</div>
+                        <h3 class="step-title">Caratteristiche del Sistema</h3>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>🔒 Sicurezza</h6>
+                            <ul>
+                                <li>Password hashing sicuro</li>
+                                <li>Protezione CSRF</li>
+                                <li>Protezione SQL injection</li>
+                                <li>Log di sicurezza completi</li>
+                                <li>Blocco account automatico</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>🎫 Gestione Ticket</h6>
+                            <ul>
+                                <li>Creazione ticket con priorità</li>
+                                <li>Assegnazione automatica</li>
+                                <li>Tracking stati completo</li>
+                                <li>Note amministrative</li>
+                                <li>Ricerca avanzata</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>📊 Dashboard</h6>
+                            <ul>
+                                <li>Statistiche in tempo reale</li>
+                                <li>Grafici e analytics</li>
+                                <li>Dashboard amministratore</li>
+                                <li>Dashboard utente</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>⚖️ GDPR</h6>
+                            <ul>
+                                <li>Consenso tracking</li>
+                                <li>Data retention</li>
+                                <li>Diritto all'oblio</li>
+                                <li>Export dati personali</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <a href="login.php" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Accedi al Sistema
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function copyToClipboard(button) {
+            const codeBlock = button.parentElement.querySelector('.code-block');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                const originalText = button.textContent;
+                button.textContent = 'Copiato!';
+                button.style.background = 'rgba(16, 185, 129, 0.3)';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = 'rgba(255, 255, 255, 0.2)';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Errore nella copia: ', err);
+                alert('Errore nella copia del testo');
+            });
+        }
+    </script>
+</body>
+</html>
