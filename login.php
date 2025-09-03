@@ -1,12 +1,7 @@
 <?php
-/**
- * IT Support Ticketing System - Login Page
- * Secure authentication with advanced security features
- */
 require_once 'config.php';
 
-// Se già loggato, redirect alla dashboard appropriata
-if (isset($_SESSION['user_id'])) {
+if (isLoggedIn()) {
     if ($_SESSION['role'] === 'admin') {
         header('Location: admin_dashboard.php');
     } else {
@@ -16,151 +11,35 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $error = '';
-$success = '';
 
-// Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // CSRF Protection
-    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        $error = 'Token di sicurezza non valido. Riprova.';
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if (empty($email) || empty($password)) {
+        $error = 'Email e password sono obbligatorie';
     } else {
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-        $password = $_POST['password'] ?? '';
-        
-        if ($email && $password) {
-            try {
-                $pdo = getDBConnection();
-                
-                // Check if user exists and get user data
-                $stmt = $pdo->prepare("
-                    SELECT id, email, password_hash, first_name, last_name, role, 
-                           failed_login_attempts, locked_until, is_active, email_verified 
-                    FROM users 
-                    WHERE email = ?
-                ");
-                $stmt->execute([$email]);
-                $user = $stmt->fetch();
-                
-                if ($user) {
-                    // Check if account is active
-                    if (!$user['is_active']) {
-                        $error = 'Account disattivato. Contatta l\'amministratore.';
-                        logSecurityEvent('login_failed', "Inactive account login attempt: $email");
-                    }
-                    // Check if account is locked
-                    elseif ($user['locked_until'] && new DateTime() < new DateTime($user['locked_until'])) {
-                        $locktime = new DateTime($user['locked_until']);
-                        $remaining = $locktime->diff(new DateTime())->format('%i minuti');
-                        $error = "Account temporaneamente bloccato. Riprova tra $remaining.";
-                        logSecurityEvent('login_failed', "Locked account login attempt: $email");
-                    }
-                    // Check if email is verified
-                    elseif (!$user['email_verified']) {
-                        $error = 'Email non verificata. Controlla la tua casella di posta.';
-                        logSecurityEvent('login_failed', "Unverified email login attempt: $email");
-                    }
-                    // Verify password
-                    elseif (password_verify($password, $user['password_hash'])) {
-                        // Login successful!
-                        $_SESSION['user_id'] = $user['id'];
-                        $_SESSION['email'] = $user['email'];
-                        $_SESSION['first_name'] = $user['first_name'];
-                        $_SESSION['last_name'] = $user['last_name'];
-                        $_SESSION['role'] = $user['role'];
-                        $_SESSION['login_time'] = time();
-                        
-                        // Generate new session ID for security
-                        session_regenerate_id(true);
-                        
-                        // Reset failed attempts
-                        $stmt = $pdo->prepare("
-                            UPDATE users 
-                            SET failed_login_attempts = 0, locked_until = NULL, 
-                                last_login = NOW(), last_login_ip = ? 
-                            WHERE id = ?
-                        ");
-                        $stmt->execute([$_SERVER['REMOTE_ADDR'], $user['id']]);
-                        
-                        // Create secure session record
-                        $sessionId = session_id();
-                        $userAgentHash = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
-                        $expiresAt = date('Y-m-d H:i:s', time() + SESSION_TIMEOUT);
-                        
-                        $stmt = $pdo->prepare("
-                            INSERT INTO user_sessions (id, user_id, ip_address, user_agent_hash, expires_at) 
-                            VALUES (?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE 
-                            last_activity = NOW(), expires_at = ?
-                        ");
-                        $stmt->execute([$sessionId, $user['id'], $_SERVER['REMOTE_ADDR'], $userAgentHash, $expiresAt, $expiresAt]);
-                        
-                        // Log successful login
-                        logSecurityEvent('login_success', "Successful login for user: $email", $user['id']);
-                        
-                        // Redirect based on role
-                        if ($user['role'] === 'admin') {
-                            header('Location: admin_dashboard.php');
-                        } else {
-                            header('Location: user_dashboard.php');
-                        }
-                        exit;
-                    } else {
-                        // Invalid password - increment failed attempts
-                        $failed_attempts = $user['failed_login_attempts'] + 1;
-                        $locked_until = null;
-                        
-                        if ($failed_attempts >= MAX_LOGIN_ATTEMPTS) {
-                            $locked_until = date('Y-m-d H:i:s', time() + LOCKOUT_TIME);
-                            $error = 'Troppi tentativi falliti. Account bloccato per ' . (LOCKOUT_TIME/60) . ' minuti.';
-                        } else {
-                            $remaining = MAX_LOGIN_ATTEMPTS - $failed_attempts;
-                            $error = "Credenziali non valide. Tentativi rimasti: $remaining";
-                        }
-                        
-                        $stmt = $pdo->prepare("
-                            UPDATE users 
-                            SET failed_login_attempts = ?, locked_until = ? 
-                            WHERE id = ?
-                        ");
-                        $stmt->execute([$failed_attempts, $locked_until, $user['id']]);
-                        
-                        // Log failed login
-                        logSecurityEvent('login_failed', "Invalid password for user: $email", $user['id']);
-                        
-                        // Also log in login_attempts table
-                        $stmt = $pdo->prepare("
-                            INSERT INTO login_attempts (email, ip_address, success, failure_reason, user_agent) 
-                            VALUES (?, ?, FALSE, 'invalid_password', ?)
-                        ");
-                        $stmt->execute([$email, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '']);
-                    }
-                } else {
-                    // User not found
-                    $error = 'Credenziali non valide.';
-                    
-                    // Log failed login attempt
-                    logSecurityEvent('login_failed', "Login attempt with non-existent email: $email");
-                    
-                    $stmt = $pdo->prepare("
-                        INSERT INTO login_attempts (email, ip_address, success, failure_reason, user_agent) 
-                        VALUES (?, ?, FALSE, 'user_not_found', ?)
-                    ");
-                    $stmt->execute([$email, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'] ?? '']);
-                }
-            } catch (PDOException $e) {
-                error_log("Login error: " . $e->getMessage());
-                $error = 'Errore del sistema. Riprova più tardi.';
-                logSecurityEvent('system_error', "Database error during login: " . $e->getMessage());
+        $stmt = $pdo->prepare("SELECT id, first_name, last_name, email, password_hash, role FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['role'] = $user['role'];
+            
+            if ($user['role'] === 'admin') {
+                header('Location: admin_dashboard.php');
+                exit;
+            } else {
+                header('Location: user_dashboard.php');
+                exit;
             }
         } else {
-            $error = 'Inserisci email e password.';
+            $error = 'Email o password non corretti';
         }
     }
-}
-
-// Generate CSRF token
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>
 <!DOCTYPE html>
@@ -168,322 +47,318 @@ if (empty($_SESSION['csrf_token'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - <?php echo SYSTEM_NAME; ?></title>
-    
-    <!-- Bootstrap 5 CSS -->
+    <title>Accedi - TicketingIT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --primary-dark: #3730a3;
-            --secondary-color: #6366f1;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
-            --dark-color: #1f2937;
-            --light-color: #f8fafc;
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-900: #0f172a;
         }
-        
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
+
         body {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
+
         .login-container {
-            max-width: 450px;
-            width: 100%;
-            margin: 20px;
-        }
-        
-        .login-card {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-        
-        .login-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .login-header h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .login-header p {
-            margin: 0.5rem 0 0 0;
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-        
-        .login-body {
-            padding: 2rem;
-        }
-        
-        .form-floating {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-control {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 1rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.1);
-        }
-        
-        .btn-login {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 12px;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            color: white;
-            transition: all 0.3s ease;
+            max-width: 450px;
             position: relative;
             overflow: hidden;
         }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #3b82f6);
+        }
+
+        .brand-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
             color: white;
+            font-size: 2rem;
         }
-        
-        .btn-login:active {
-            transform: translateY(0);
+
+        .brand-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
         }
-        
-        .alert {
+
+        .brand-subtitle {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+        }
+
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            border: 2px solid var(--gray-100);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+        }
+
+        .btn-login {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            width: 100%;
+            transition: all 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-login:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            position: relative;
+            color: var(--secondary-color);
+            font-size: 0.875rem;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gray-100);
+            z-index: 1;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .register-link {
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .privacy-footer {
+            text-align: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-100);
+        }
+
+        .privacy-footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .privacy-footer a:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .alert-clean {
             border: none;
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1.5rem;
-        }
-        
-        .alert-danger {
             background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            border-left: 4px solid var(--danger-color);
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
         }
-        
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-            border-left: 4px solid var(--success-color);
-        }
-        
-        .login-footer {
-            background: #f8fafc;
-            padding: 1.5rem 2rem;
-            text-align: center;
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-        
-        .demo-accounts {
-            background: rgba(79, 70, 229, 0.05);
+
+        .demo-section {
+            background: var(--gray-50);
             border-radius: 12px;
             padding: 1rem;
-            margin-top: 1rem;
-            border-left: 4px solid var(--primary-color);
+            margin-top: 1.5rem;
+            text-align: center;
         }
-        
-        .demo-accounts h6 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
+
+        .demo-title {
+            font-size: 0.875rem;
             font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
         }
-        
-        .demo-accounts small {
-            color: #6b7280;
-            display: block;
-            margin-bottom: 0.3rem;
+
+        .demo-credentials {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            line-height: 1.4;
         }
-        
-        .loading-spinner {
-            display: none;
+
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
         }
-        
-        .btn-login.loading .loading-spinner {
-            display: inline-block;
+
+        .back-home:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
-        
-        .btn-login.loading .btn-text {
-            display: none;
-        }
-        
+
         @media (max-width: 576px) {
             .login-container {
-                margin: 10px;
-            }
-            
-            .login-header, .login-body {
-                padding: 1.5rem;
+                margin: 1rem;
+                padding: 2rem;
             }
         }
     </style>
 </head>
 <body>
+    <a href="index.php" class="back-home">
+        <i class="fas fa-arrow-left me-2"></i>Homepage
+    </a>
+
     <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <i class="fas fa-headset fa-2x mb-3"></i>
-                <h1><?php echo SYSTEM_NAME; ?></h1>
-                <p>Sistema Professionale di Ticketing IT</p>
+        <div class="brand-section">
+            <div class="brand-icon">
+                <i class="fas fa-ticket-alt"></i>
             </div>
-            
-            <div class="login-body">
-                <?php if ($error): ?>
-                    <div class="alert alert-danger" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <?php echo htmlspecialchars($error); ?>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if ($success): ?>
-                    <div class="alert alert-success" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <?php echo htmlspecialchars($success); ?>
-                    </div>
-                <?php endif; ?>
-                
-                <form method="POST" action="" id="loginForm" novalidate>
-                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                    
-                    <div class="form-floating">
-                        <input type="email" class="form-control" id="email" name="email" 
-                               placeholder="nome@esempio.com" required 
-                               value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
-                        <label for="email">
-                            <i class="fas fa-envelope me-2"></i>Indirizzo Email
-                        </label>
-                        <div class="invalid-feedback">
-                            Inserisci un indirizzo email valido.
-                        </div>
-                    </div>
-                    
-                    <div class="form-floating">
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Password" required minlength="6">
-                        <label for="password">
-                            <i class="fas fa-lock me-2"></i>Password
-                        </label>
-                        <div class="invalid-feedback">
-                            La password deve essere di almeno 6 caratteri.
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-login">
-                        <span class="btn-text">
-                            <i class="fas fa-sign-in-alt me-2"></i>Accedi al Sistema
-                        </span>
-                        <span class="loading-spinner">
-                            <i class="fas fa-spinner fa-spin me-2"></i>Autenticazione...
-                        </span>
-                    </button>
-                </form>
-                
-                <!-- Demo Accounts Info -->
-                <div class="demo-accounts">
-                    <h6><i class="fas fa-info-circle me-2"></i>Account Demo</h6>
-                    <small><strong>Admin:</strong> admin@ticketing.local / Admin@123!</small>
-                    <small><strong>Utente:</strong> user@ticketing.local / User@123!</small>
-                </div>
+            <h1 class="brand-title">Benvenuto!</h1>
+            <p class="brand-subtitle">Accedi al tuo account TicketingIT</p>
+        </div>
+
+        <?php if ($error): ?>
+            <div class="alert-clean">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <?= htmlspecialchars($error) ?>
             </div>
-            
-            <div class="login-footer">
-                <p class="mb-0">
-                    <i class="fas fa-shield-alt me-1"></i>
-                    Sistema sicuro con autenticazione a due fattori
-                </p>
-                <small class="text-muted">
-                    © <?php echo date('Y'); ?> <?php echo COMPANY_NAME; ?> - Tutti i diritti riservati
-                </small>
+        <?php endif; ?>
+
+        <form method="POST">
+            <div class="form-floating">
+                <input type="email" class="form-control" id="email" name="email" 
+                       placeholder="nome@esempio.com" required>
+                <label for="email">
+                    <i class="fas fa-envelope me-2"></i>Email
+                </label>
+            </div>
+
+            <div class="form-floating">
+                <input type="password" class="form-control" id="password" name="password" 
+                       placeholder="Password" required>
+                <label for="password">
+                    <i class="fas fa-lock me-2"></i>Password
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i>Accedi
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>oppure</span>
+        </div>
+
+        <div class="register-link">
+            Non hai un account? 
+            <a href="register.php">
+                <i class="fas fa-user-plus me-1"></i>Registrati qui
+            </a>
+        </div>
+
+        <div class="privacy-footer">
+            <a href="privacy_policy.php" target="_blank">
+                <i class="fas fa-shield-alt me-1"></i>Privacy Policy
+            </a>
+        </div>
+
+        <div class="demo-section">
+            <div class="demo-title">
+                <i class="fas fa-info-circle me-2"></i>Account Demo
+            </div>
+            <div class="demo-credentials">
+                <strong>Admin:</strong> admin@test.com / admin123<br>
+                <strong>User:</strong> user@test.com / user123
             </div>
         </div>
     </div>
-    
-    <!-- Bootstrap 5 JS -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JavaScript -->
     <script>
+        // Auto-focus sul primo campo
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('loginForm');
-            const submitBtn = form.querySelector('.btn-login');
-            
-            // Form validation
-            form.addEventListener('submit', function(e) {
-                if (!form.checkValidity()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                
-                form.classList.add('was-validated');
-                
-                if (form.checkValidity()) {
-                    // Show loading state
-                    submitBtn.classList.add('loading');
-                    submitBtn.disabled = true;
-                }
-            });
-            
-            // Real-time validation
-            const inputs = form.querySelectorAll('input[required]');
-            inputs.forEach(input => {
-                input.addEventListener('blur', function() {
-                    if (input.checkValidity()) {
-                        input.classList.remove('is-invalid');
-                        input.classList.add('is-valid');
-                    } else {
-                        input.classList.remove('is-valid');
-                        input.classList.add('is-invalid');
-                    }
-                });
-            });
-            
-            // Auto-focus on first input
             document.getElementById('email').focus();
-            
-            // Prevent form resubmission on page refresh
-            if (window.history.replaceState) {
-                window.history.replaceState(null, null, window.location.href);
-            }
         });
+
+        // Animazione di entrata
+        document.querySelector('.login-container').style.opacity = '0';
+        document.querySelector('.login-container').style.transform = 'translateY(20px)';
         
-        // Security: Clear form data on page unload
-        window.addEventListener('beforeunload', function() {
-            document.getElementById('password').value = '';
-        });
+        setTimeout(() => {
+            document.querySelector('.login-container').style.transition = 'all 0.6s ease';
+            document.querySelector('.login-container').style.opacity = '1';
+            document.querySelector('.login-container').style.transform = 'translateY(0)';
+        }, 100);
     </script>
 </body>
 </html>

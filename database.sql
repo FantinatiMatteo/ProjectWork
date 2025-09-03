@@ -1,5 +1,5 @@
 -- Ticketing System Database Schema
--- Created for ITS Project Work - Sistema Ticketing per Assistenza IT
+-- Created for ITS Project Work - ticketingit per Assistenza IT
 
 CREATE DATABASE IF NOT EXISTS ticketing_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE ticketing_system;

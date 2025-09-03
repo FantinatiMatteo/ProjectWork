@@ -1,4 +1,3 @@
-PROGETTI I ANNO - ITS 
 Regole per la consegna:  
 ● Report  
 ● Inviare link del GitHub Repository (pubblico) contenente codice, presentazione e report. 
@@ -23,7 +22,9 @@ amministratori di accedere e modificare in modo sicuro le risorse.
 personali degli utenti, garantendo la conformità normativa e la sicurezza dei dati. 
 ○ Assicurare che il sito web sia conforme alle normative sulla privacy, come il 
 GDPR (General Data Protection Regulation). 
-***** 
+*****
+
+
 6. Sistema Ticketing per Assistenza IT 
 (Ref. Alfonso Esposito alfonso.esposito@itsolivetti.it, Isabella Marasco, 
 isabella.marasco4@unibo.it ) 

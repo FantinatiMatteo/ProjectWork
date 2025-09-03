@@ -1,6 +1,32 @@
-# Sistema Ticketing per Assistenza IT
 
-Un sistema professionale di ticketing per l'assistenza IT sviluppato in PHP con MySQL. Questo progetto è stato realizzato per l'assignment ITS come sistema completo di gestione ticket con interfaccia moderna e funzionalità avanzate.
+# ticketingit per Assistenza IT
+
+Sistema completo per la gestione di richieste di assistenza IT, sviluppato per l'assegnamento ITS. Include tutte le funzionalità richieste dalla consegna, sicurezza avanzata, email reali, interfaccia moderna e documentazione dettagliata.
+
+## ✅ Requisiti consegna soddisfatti
+- Interfaccia utente intuitiva e responsive
+- Ricerca avanzata nei ticket
+- Registrazione/login sicura con password hash (bcrypt)
+- Due ruoli: utente e amministratore
+- Gestione sicura dati personali, privacy e GDPR
+- Form apertura ticket con priorità
+- Eliminazione ticket da parte admin
+- Dashboard admin con elenco, stato, priorità, note interne
+- Home utente: lista ticket + form nuova richiesta
+- Sicurezza: CSRF, SQL injection, sessioni sicure
+- Email reali per apertura/cambio stato ticket
+- **Privacy Policy completa e conformità GDPR**
+
+## 📧 Email reali
+Il sistema invia email reali agli utenti per ogni apertura e cambio stato ticket, tramite Node.js/Nodemailer integrato con PHP.
+
+## 🗄️ Migrazione database
+Per creare il database e le tabelle, usa il file `migration.sql` incluso. Contiene anche l'admin preconfigurato.
+
+## 📄 Relazione e presentazione
+Vedi `relazione.md` per la relazione tecnica dettagliata.
+
+---
 
 ## 🚀 Caratteristiche Principali
 
@@ -22,9 +48,11 @@ Un sistema professionale di ticketing per l'assistenza IT sviluppato in PHP con 
 - **Protezione CSRF**: Token di sicurezza per tutte le operazioni
 - **Password Sicure**: Hash bcrypt e requisiti di complessità
 - **Gestione Sessioni**: Sistema sicuro di autenticazione
-- **Conformità GDPR**: Gestione consensi e privacy
+- **Conformità GDPR**: Gestione consensi, privacy policy completa e tracciamento consensi
 - **Log di Sicurezza**: Tracciamento eventi e tentativi di accesso
 - **Prevenzione SQL Injection**: Query preparate e sanitizzazione input
+- **Privacy Policy**: Pagina dedicata con informazioni complete su trattamento dati
+- **Consenso Privacy**: Checkbox obbligatorio in registrazione con logging GDPR
 
 ### Design e UI/UX
 - **Responsive Design**: Bootstrap 5 per compatibilità mobile
@@ -60,11 +88,11 @@ Un sistema professionale di ticketing per l'assistenza IT sviluppato in PHP con 
 C:\xampp\htdocs\ticketing-system\
 ```
 
+
 ### 2. Configurazione Database
-1. Apri il file `setup.html` nel browser
-2. Segui le istruzioni per creare il database
-3. Copia e incolla i comandi SQL in phpMyAdmin
-4. Modifica le credenziali in `config.php`
+1. Apri `migration.sql` in phpMyAdmin o MySQL CLI
+2. Esegui tutti i comandi per creare database, tabelle e admin
+3. Modifica le credenziali in `config.php`
 
 ### 3. Configurazione PHP
 Assicurati che il file `config.php` contenga le credenziali corrette:
@@ -75,11 +103,11 @@ define('DB_PASS', '');               // La tua password MySQL
 define('DB_NAME', 'ticketing_system');
 ```
 
+
 ### 4. Test del Sistema
-1. Naviga su `http://localhost/ticketing-system/`
+1. Naviga su `http://localhost/ProjectWork/`
 2. Usa le credenziali di test:
    - **Admin**: admin@ticketing.local / Admin@123!
-   - **Utente**: user@ticketing.local / User@123!
 
 ## 📁 Struttura del Progetto
 
@@ -90,6 +118,7 @@ ProjectWork/
 ├── login.php                  # Pagina di login
 ├── register.php               # Registrazione nuovi utenti
 ├── logout.php                 # Logout sicuro
+├── privacy_policy.php          # Privacy Policy GDPR completa
 ├── user_dashboard.php          # Dashboard utente
 ├── admin_dashboard.php         # Dashboard amministratore
 ├── ticket_details.php          # Visualizzazione dettagli ticket
@@ -102,22 +131,30 @@ ProjectWork/
         ├── 002_create_tickets_table.php
         ├── 003_create_security_logs_table.php
         ├── 004_create_sessions_table.php
-        └── 005_create_ticket_comments_table.php
+        ├── 005_create_ticket_comments_table.php
+        └── 006_add_privacy_consent_field.php
 ```
 
-## 👥 Account di Test
+## 🛡️ Conformità GDPR
 
-Il sistema include account preconfigurati per il testing:
+### Implementazione Privacy
+- **Privacy Policy completa**: Pagina dedicata accessibile da tutti i form
+- **Consenso esplicito**: Checkbox obbligatorio in registrazione
+- **Tracciamento consensi**: Data e IP di consenso salvati per audit
+- **Diritti dell'interessato**: Informazioni complete su accesso, rettifica, cancellazione
+- **Base giuridica**: Consenso per servizio, interesse legittimo per sicurezza
+- **Conservazione limitata**: Periodi definiti per diversi tipi di dati
+- **Nessuna condivisione**: Dati NON condivisi con terze parti (tranne email provider)
+- **Sicurezza dati**: Crittografia, HTTPS, backup protetti
+- **Server UE**: Dati trattati solo nell'Unione Europea
+
+
+## 👥 Account di Test
 
 ### Amministratore
 - **Email**: admin@ticketing.local
 - **Password**: Admin@123!
 - **Ruolo**: Amministratore completo
-
-### Utente Standard
-- **Email**: user@ticketing.local
-- **Password**: User@123!
-- **Ruolo**: Utente finale
 
 ## 🔧 Come Avviare il Sistema
 
@@ -126,38 +163,66 @@ Il sistema include account preconfigurati per il testing:
 2. Avvia Apache e MySQL
 3. Copia i file nella cartella `htdocs` (o `www`)
 
+
 ### Step 2: Configurazione Database
-1. Apri `http://localhost/ProjectWork/setup.html`
-2. Segui le istruzioni passo-passo
-3. Copia i comandi SQL in phpMyAdmin
-4. Esegui tutti i comandi nell'ordine mostrato
+1. Apri `migration.sql` in phpMyAdmin o MySQL CLI
+2. Esegui tutti i comandi per creare database, tabelle e admin
+3. Modifica le credenziali in `config.php`
 
 ### Step 3: Configurazione PHP
 1. Modifica `config.php` con le tue credenziali MySQL
 2. Assicurati che le estensioni PHP siano abilitate
 
+
 ### Step 4: Test del Sistema
 1. Vai su `http://localhost/ProjectWork/`
-2. Prova il login con le credenziali di test
-3. Esplora le funzionalità di utente e admin
+2. Login come admin: admin@ticketing.local / Admin@123!
+3. Esplora tutte le funzionalità: creazione ticket, cambio stato, email, dashboard, sicurezza
 
-## 🐛 Risoluzione Problemi
 
-### Errore di Connessione Database
-- Verifica che MySQL sia avviato
-- Controlla le credenziali in `config.php`
-- Assicurati che il database `ticketing_system` esista
+## 🐛 Troubleshooting
 
-### Errori di Sessione
-- Verifica che PHP abbia permessi di scrittura nella cartella temp
-- Controlla la configurazione delle sessioni in PHP
+### Database
+- MySQL deve essere avviato
+- Credenziali corrette in `config.php`
+- Il database `ticketing_system` deve esistere
 
-### Problemi di Login
-- Usa esattamente le credenziali di test fornite
-- Controlla che i dati utente siano stati inseriti correttamente nel database
+### Sessioni
+- PHP deve poter scrivere nella cartella temp
+- Verifica configurazione sessioni PHP
+
+### Login
+- Usa le credenziali admin fornite
+- Se non funziona, controlla che l'admin sia presente in `users`
+
+### Email
+- Verifica che Node.js e Nodemailer siano installati
+- Controlla la configurazione Gmail in `sendMail.js`
+- Diagnostica visibile in dashboard admin in caso di errore
+
+### Privacy/GDPR
+- Il sistema richiede consenso privacy in fase di registrazione
+- I dati sono gestiti secondo normativa GDPR
+
+### Sicurezza
+- Password hash bcrypt
+- Query preparate contro SQL injection
+- Token CSRF per tutte le operazioni
+
+## 🎬 Demo e Presentazione
+- Demo guidata: login, creazione ticket, cambio stato, email, dashboard admin
+- Relazione tecnica dettagliata in `relazione.md`
+- Repository GitHub pubblico con codice, documentazione e report
+
+## 🔗 Link Utili
+- [Relazione tecnica](relazione.md)
+- [Migrazione SQL](migration.sql)
 
 ---
 
-**Developed with ❤️ for ITS Assignment - Point 6: Sistema Ticketing per Assistenza IT**
 
-*Sistema completo, professionale e con design moderno come richiesto dalla consegna.*
+---
+
+**Developed with ❤️ for ITS Assignment - Point 6: ticketingit per Assistenza IT**
+
+*Sistema completo, professionale, sicuro e conforme alla consegna.*
